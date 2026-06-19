@@ -20,6 +20,17 @@ function drawGrassSideTile(ctx: CanvasRenderingContext2D, col: number) {
   ctx.fillRect(x, 4, TILE_SIZE, TILE_SIZE - 4)
 }
 
+// タイルの外周に1pxの半透明黒枠を焼く。各ブロック面が必ず1タイル＝面の縁に
+// 輪郭が出るため、隣接ブロックの境目がグリッド状に見えるようになる。
+function drawTileBorder(ctx: CanvasRenderingContext2D, col: number) {
+  const x = col * TILE_SIZE
+  ctx.fillStyle = 'rgba(0,0,0,0.28)'
+  ctx.fillRect(x, 0, TILE_SIZE, 1)                  // 上辺
+  ctx.fillRect(x, TILE_SIZE - 1, TILE_SIZE, 1)      // 下辺
+  ctx.fillRect(x, 0, 1, TILE_SIZE)                  // 左辺
+  ctx.fillRect(x + TILE_SIZE - 1, 0, 1, TILE_SIZE)  // 右辺
+}
+
 export function createTextureAtlas(): THREE.Texture {
   const size = ATLAS_COLS * TILE_SIZE
   const canvas = document.createElement('canvas')
@@ -35,6 +46,11 @@ export function createTextureAtlas(): THREE.Texture {
     ctx.fillRect(col * TILE_SIZE, 0, TILE_SIZE, TILE_SIZE)
   })
   drawGrassSideTile(ctx, 4)
+
+  // 使用する全タイル（col 0..5）の縁に輪郭を焼く
+  for (let col = 0; col < TILE_COLORS.length; col++) {
+    drawTileBorder(ctx, col)
+  }
 
   const texture = new THREE.CanvasTexture(canvas)
   texture.flipY = false
