@@ -1,7 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { Chunk } from './Chunk'
 import { buildChunkGeometry } from './ChunkMesh'
-import { BLOCK_STONE, BLOCK_AIR } from '../constants'
+import { BLOCK_STONE, BLOCK_AIR, BLOCK_GRASS } from '../constants'
+
+const ATLAS_COLS = 16
+const TILE_UV = 1 / ATLAS_COLS
 
 describe('buildChunkGeometry', () => {
   it('単一ブロックの全面の法線が外向き（FrontSideで描画される巻き順）', () => {
@@ -30,5 +33,55 @@ describe('buildChunkGeometry', () => {
         nz * (pz - center[2])
       expect(dot).toBeGreaterThan(0)
     }
+  })
+
+  it('grass側面UVは頂点高さに対応する（上端=緑v≈0、下端=土v≈TILE_UV）', () => {
+    // BLOCK_GRASS を (0,0,0) に置き、周囲は全て空気
+    const chunk = new Chunk(0, 0)
+    chunk.setBlock(0, 0, 0, BLOCK_GRASS)
+
+    const geo = buildChunkGeometry(chunk, () => BLOCK_AIR)
+    geo.computeVertexNormals()
+
+    const pos = geo.getAttribute('position')
+    const uvAttr = geo.getAttribute('uv')
+    const nrm = geo.getAttribute('normal')
+
+    // grass tileSide は col=4 なので u ∈ [4*TILE_UV, 5*TILE_UV]
+    const uMin = 4 * TILE_UV
+    const uMax = 5 * TILE_UV
+    const blockBottom = 0
+    const blockTop = 1
+
+    let sideFaceChecked = false
+
+    for (let i = 0; i < pos.count; i++) {
+      const nx = nrm.getX(i), ny = nrm.getY(i), nz = nrm.getZ(i)
+      // 側面: 水平法線 (ny ≈ 0, nx or nz ≠ 0)
+      if (Math.abs(ny) > 0.5) continue
+
+      const py = pos.getY(i)
+      const u = uvAttr.getX(i)
+      const v = uvAttr.getY(i)
+
+      // u は grass side タイル列の範囲内
+      expect(u).toBeGreaterThanOrEqual(uMin - 1e-6)
+      expect(u).toBeLessThanOrEqual(uMax + 1e-6)
+
+      if (Math.abs(py - blockTop) < 1e-6) {
+        // 上端頂点: v ≈ 0（緑）
+        expect(v).toBeLessThan(TILE_UV / 2)
+        sideFaceChecked = true
+      } else if (Math.abs(py - blockBottom) < 1e-6) {
+        // 下端頂点: v ≈ TILE_UV（土）
+        expect(v).toBeGreaterThan(TILE_UV / 2)
+        sideFaceChecked = true
+      }
+
+      // ny は実質 0（側面）
+      expect(Math.abs(nx) + Math.abs(nz)).toBeGreaterThan(0.5)
+    }
+
+    expect(sideFaceChecked).toBe(true)
   })
 })

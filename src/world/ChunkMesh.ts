@@ -8,13 +8,22 @@ const TILE_UV = 1 / ATLAS_COLS
 
 type UVFace = 'top' | 'side' | 'bottom'
 
-const FACES: { dir: [number,number,number]; uvFace: UVFace; corners: [number,number,number][] }[] = [
-  { dir: [0, 1, 0], uvFace: 'top',    corners: [[0,1,0],[1,1,0],[1,1,1],[0,1,1]] },
-  { dir: [0,-1, 0], uvFace: 'bottom', corners: [[0,0,1],[1,0,1],[1,0,0],[0,0,0]] },
-  { dir: [1, 0, 0], uvFace: 'side',   corners: [[1,0,1],[1,1,1],[1,1,0],[1,0,0]] },
-  { dir: [-1,0, 0], uvFace: 'side',   corners: [[0,0,0],[0,1,0],[0,1,1],[0,0,1]] },
-  { dir: [0, 0, 1], uvFace: 'side',   corners: [[1,0,1],[0,0,1],[0,1,1],[1,1,1]] },
-  { dir: [0, 0,-1], uvFace: 'side',   corners: [[0,0,0],[1,0,0],[1,1,0],[0,1,0]] },
+// uvCorners: per-corner [uFrac, vFrac] (0 or 1).
+// u = u0 + uFrac*TILE_UV, v = vFrac*TILE_UV
+// For sides: vFrac = 1 - cy, so top vertex (cy=1) → vFrac=0 → v=0 (green),
+//            bottom vertex (cy=0) → vFrac=1 → v=TILE_UV (dirt).
+const FACES: {
+  dir: [number,number,number]
+  uvFace: UVFace
+  corners: [number,number,number][]
+  uvCorners: [number,number][]
+}[] = [
+  { dir: [0, 1, 0], uvFace: 'top',    corners: [[0,1,0],[1,1,0],[1,1,1],[0,1,1]], uvCorners: [[0,0],[1,0],[1,1],[0,1]] },
+  { dir: [0,-1, 0], uvFace: 'bottom', corners: [[0,0,1],[1,0,1],[1,0,0],[0,0,0]], uvCorners: [[0,1],[1,1],[1,0],[0,0]] },
+  { dir: [1, 0, 0], uvFace: 'side',   corners: [[1,0,1],[1,1,1],[1,1,0],[1,0,0]], uvCorners: [[1,1],[1,0],[0,0],[0,1]] },
+  { dir: [-1,0, 0], uvFace: 'side',   corners: [[0,0,0],[0,1,0],[0,1,1],[0,0,1]], uvCorners: [[0,1],[0,0],[1,0],[1,1]] },
+  { dir: [0, 0, 1], uvFace: 'side',   corners: [[1,0,1],[0,0,1],[0,1,1],[1,1,1]], uvCorners: [[1,1],[0,1],[0,0],[1,0]] },
+  { dir: [0, 0,-1], uvFace: 'side',   corners: [[0,0,0],[1,0,0],[1,1,0],[0,1,0]], uvCorners: [[0,1],[1,1],[1,0],[0,0]] },
 ]
 
 function getTileCol(blockId: number, uvFace: UVFace): number {
@@ -52,12 +61,13 @@ export function buildChunkGeometry(
 
           const tileCol = getTileCol(blockId, face.uvFace)
           const u0 = tileCol * TILE_UV
-          const u1 = u0 + TILE_UV
 
-          for (const [cx, cy, cz] of face.corners) {
+          for (let ci = 0; ci < face.corners.length; ci++) {
+            const [cx, cy, cz] = face.corners[ci]
             positions.push(lx + cx, ly + cy, lz + cz)
+            const [uFrac, vFrac] = face.uvCorners[ci]
+            uvs.push(u0 + uFrac * TILE_UV, vFrac * TILE_UV)
           }
-          uvs.push(u0, TILE_UV, u1, TILE_UV, u1, 0, u0, 0)
 
           // 巻き順はCCW（外向き法線）にする。FACES の corners は時計回り定義なので
           // 三角形のインデックス順を反転して front face を外側に向ける。
