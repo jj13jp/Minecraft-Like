@@ -31,7 +31,7 @@ describe('raycast (DDA)', () => {
   })
 
   it('下方向のレイが床を検出する', () => {
-    const getFloor = (x: number, y: number, _z: number) => (y === -1 ? 1 : 0)
+    const getFloor = (_x: number, y: number, _z: number) => (y === -1 ? 1 : 0)
     const origin = new THREE.Vector3(0.5, 0.5, 0.5)
     const dir = new THREE.Vector3(0, -1, 0)
     const result = raycast(origin, dir, 5, getFloor)
