@@ -59,9 +59,11 @@ export function buildChunkGeometry(
           }
           uvs.push(u0, TILE_UV, u1, TILE_UV, u1, 0, u0, 0)
 
+          // 巻き順はCCW（外向き法線）にする。FACES の corners は時計回り定義なので
+          // 三角形のインデックス順を反転して front face を外側に向ける。
           indices.push(
-            vertexCount, vertexCount + 1, vertexCount + 2,
-            vertexCount, vertexCount + 2, vertexCount + 3
+            vertexCount, vertexCount + 2, vertexCount + 1,
+            vertexCount, vertexCount + 3, vertexCount + 2
           )
           vertexCount += 4
         }
