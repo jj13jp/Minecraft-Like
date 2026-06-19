@@ -75,6 +75,8 @@ export class World {
       }
     }
 
+    // フレーム1回につき1チャンクのみ生成してフレームスタッキングを避ける
+    // 非常に速い移動（歩行以上）では生成に追いつけない場合があるが、プロトタイプ範囲外
     const next = this.generateQueue.shift()
     if (next) {
       const [cx, cz] = next

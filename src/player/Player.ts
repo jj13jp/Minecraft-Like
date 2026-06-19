@@ -3,7 +3,7 @@ import RAPIER from '@dimforge/rapier3d-compat'
 import { raycast } from './Raycast'
 import {
   PLAYER_HEIGHT, PLAYER_RADIUS, PLAYER_SPEED, JUMP_FORCE, REACH_DISTANCE,
-  BLOCK_AIR
+  BLOCK_AIR, GRAVITY
 } from '../constants'
 
 interface PlayerOptions {
@@ -57,7 +57,11 @@ export class Player {
   }
 
   private setupInput(): void {
-    window.addEventListener('keydown', e => { this.keys[e.code] = true })
+    window.addEventListener('keydown', e => {
+      this.keys[e.code] = true
+      const num = parseInt(e.key)
+      if (num >= 1 && num <= 5) this.selectedBlockId = num
+    })
     window.addEventListener('keyup', e => { this.keys[e.code] = false })
 
     document.body.addEventListener('click', () => {
@@ -88,11 +92,6 @@ export class Player {
       }
     })
 
-    window.addEventListener('keydown', e => {
-      const num = parseInt(e.key)
-      if (num >= 1 && num <= 5) this.selectedBlockId = num
-    })
-
     window.addEventListener('contextmenu', e => e.preventDefault())
   }
 
@@ -115,7 +114,7 @@ export class Player {
     if (this.keys['Space'] && this.isOnGround) {
       this.velocityY = JUMP_FORCE
     }
-    this.velocityY += -20 * delta
+    this.velocityY += GRAVITY * delta
 
     this.controller.computeColliderMovement(this.collider, {
       x: moveX * delta,
