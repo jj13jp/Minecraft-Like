@@ -37,6 +37,7 @@ export function createTextureAtlas(): THREE.Texture {
   drawGrassSideTile(ctx, 4)
 
   const texture = new THREE.CanvasTexture(canvas)
+  texture.flipY = false
   texture.magFilter = THREE.NearestFilter
   texture.minFilter = THREE.NearestFilter
   return texture
