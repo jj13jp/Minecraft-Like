@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { Chunk } from './Chunk'
-import { buildChunkGeometry } from './ChunkMesh'
+import { buildChunkGeometry, computeVertexAO } from './ChunkMesh'
 import { BLOCK_STONE, BLOCK_AIR, BLOCK_GRASS } from '../constants'
 
 const ATLAS_COLS = 16
@@ -83,5 +83,50 @@ describe('buildChunkGeometry', () => {
     }
 
     expect(sideFaceChecked).toBe(true)
+  })
+
+  it('単一ブロックは全頂点が遮蔽なし（color=1.0）', () => {
+    const chunk = new Chunk(0, 0)
+    chunk.setBlock(8, 10, 8, BLOCK_STONE)
+    const geo = buildChunkGeometry(chunk, () => BLOCK_AIR)
+    const color = geo.getAttribute('color')
+    expect(color).toBeTruthy()
+    expect(color.count).toBe(geo.getAttribute('position').count)
+    for (let i = 0; i < color.count; i++) {
+      expect(color.getX(i)).toBeCloseTo(1.0)
+    }
+  })
+
+  it('床の上のブロックはAO遮蔽で一部 color<1.0 になる', () => {
+    const chunk = new Chunk(0, 0)
+    for (let x = 6; x <= 10; x++) chunk.setBlock(x, 10, 8, BLOCK_STONE) // 床
+    chunk.setBlock(8, 11, 8, BLOCK_STONE)                              // 床の上のブロック
+    const geo = buildChunkGeometry(chunk, () => BLOCK_AIR)
+    const color = geo.getAttribute('color')
+    let hasDark = false
+    for (let i = 0; i < color.count; i++) {
+      if (color.getX(i) < 0.999) hasDark = true
+    }
+    expect(hasDark).toBe(true)
+  })
+})
+
+describe('computeVertexAO', () => {
+  it('両辺ソリッドは最大遮蔽3（角は無関係）', () => {
+    expect(computeVertexAO(true, true, false)).toBe(3)
+    expect(computeVertexAO(true, true, true)).toBe(3)
+  })
+  it('遮蔽なしは0', () => {
+    expect(computeVertexAO(false, false, false)).toBe(0)
+  })
+  it('片辺のみは1', () => {
+    expect(computeVertexAO(true, false, false)).toBe(1)
+    expect(computeVertexAO(false, true, false)).toBe(1)
+  })
+  it('角のみは1', () => {
+    expect(computeVertexAO(false, false, true)).toBe(1)
+  })
+  it('片辺+角は2', () => {
+    expect(computeVertexAO(true, false, true)).toBe(2)
   })
 })
