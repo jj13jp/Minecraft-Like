@@ -5,6 +5,7 @@ import { ChunkCollider } from './physics/ChunkCollider'
 import { World } from './world/World'
 import { Player } from './player/Player'
 import { UI } from './ui/UI'
+import { Settings } from './ui/Settings'
 
 async function main() {
   await RAPIER.init()
@@ -23,6 +24,12 @@ async function main() {
 
   const uiContainer = document.getElementById('ui')!
   const ui = new UI(uiContainer)
+  new Settings(uiContainer, {
+    getSensitivity: () => player.sensitivity,
+    setSensitivity: (v) => { player.sensitivity = v },
+    getMouseAcceleration: () => player.mouseAcceleration,
+    setMouseAcceleration: (v) => { player.mouseAcceleration = v },
+  })
 
   // スタート周辺チャンクを先行生成
   for (let i = 0; i < 10; i++) {

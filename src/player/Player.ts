@@ -24,6 +24,9 @@ export class Player {
   private body: RAPIER.RigidBody
   private collider: RAPIER.Collider
 
+  sensitivity = 1.0
+  mouseAcceleration = false
+
   private yaw = 0
   private pitch = 0
   private velocityY = 0
@@ -70,8 +73,16 @@ export class Player {
 
     window.addEventListener('mousemove', e => {
       if (document.pointerLockElement !== document.body) return
-      this.yaw -= e.movementX * 0.002
-      this.pitch -= e.movementY * 0.002
+      const base = 0.002 * this.sensitivity
+      let dx = e.movementX, dy = e.movementY
+      if (this.mouseAcceleration) {
+        const speed = Math.sqrt(dx * dx + dy * dy)
+        const factor = 1 + speed * 0.04
+        dx *= factor
+        dy *= factor
+      }
+      this.yaw -= dx * base
+      this.pitch -= dy * base
       this.pitch = Math.max(-Math.PI / 2 + 0.01, Math.min(Math.PI / 2 - 0.01, this.pitch))
     })
 
