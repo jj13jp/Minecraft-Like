@@ -24,7 +24,7 @@ function drawGrassSideTile(ctx: CanvasRenderingContext2D, col: number) {
 // 輪郭が出るため、隣接ブロックの境目がグリッド状に見えるようになる。
 function drawTileBorder(ctx: CanvasRenderingContext2D, col: number) {
   const x = col * TILE_SIZE
-  ctx.fillStyle = 'rgba(0,0,0,0.28)'
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.8)'
   ctx.fillRect(x, 0, TILE_SIZE, 1)                  // 上辺
   ctx.fillRect(x, TILE_SIZE - 1, TILE_SIZE, 1)      // 下辺
   ctx.fillRect(x, 0, 1, TILE_SIZE)                  // 左辺
