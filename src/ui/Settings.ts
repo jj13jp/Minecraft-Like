@@ -6,20 +6,28 @@ interface SettingsConfig {
 }
 
 export class Settings {
-  private panel: HTMLElement
+  private backdrop: HTMLElement
   private sensitivityLabel: HTMLElement
   private sensitivityInput: HTMLInputElement
   private accelInput: HTMLInputElement
 
   constructor(container: HTMLElement, config: SettingsConfig) {
-    this.panel = document.createElement('div')
-    Object.assign(this.panel.style, {
-      position: 'absolute', top: '50%', left: '50%',
-      transform: 'translate(-50%, -50%)',
-      background: 'rgba(0,0,0,0.8)',
+    // 全画面バックドロップ — クリックをここで止め body に伝えない
+    this.backdrop = document.createElement('div')
+    Object.assign(this.backdrop.style, {
+      position: 'fixed', inset: '0',
+      background: 'rgba(0,0,0,0.5)',
+      display: 'none', alignItems: 'center', justifyContent: 'center',
+      zIndex: '100',
+    })
+    this.backdrop.addEventListener('click', e => e.stopPropagation())
+
+    const panel = document.createElement('div')
+    Object.assign(panel.style, {
+      background: 'rgba(20,20,20,0.95)',
       color: '#fff', fontFamily: 'monospace', fontSize: '14px',
       padding: '24px 32px', borderRadius: '8px', lineHeight: '2',
-      display: 'none', flexDirection: 'column', gap: '12px',
+      display: 'flex', flexDirection: 'column', gap: '12px',
       minWidth: '280px',
     })
 
@@ -81,17 +89,28 @@ export class Settings {
 
     const hint = document.createElement('div')
     Object.assign(hint.style, { fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginTop: '8px' })
-    hint.textContent = 'Click to resume'
+    hint.textContent = 'Press Esc to resume'
 
-    this.panel.appendChild(title)
-    this.panel.appendChild(sensRow)
-    this.panel.appendChild(accelRow)
-    this.panel.appendChild(hint)
-    container.appendChild(this.panel)
+    panel.appendChild(title)
+    panel.appendChild(sensRow)
+    panel.appendChild(accelRow)
+    panel.appendChild(hint)
+    this.backdrop.appendChild(panel)
+    container.appendChild(this.backdrop)
 
+    // ポインターロック解除時にパネルを表示
     document.addEventListener('pointerlockchange', () => {
       const locked = document.pointerLockElement === document.body
-      this.panel.style.display = locked ? 'none' : 'flex'
+      this.backdrop.style.display = locked ? 'none' : 'flex'
+    })
+
+    // Escape でパネルを閉じてゲームに戻る
+    // ポインターロックが既に解除済みの状態では Escape は通常キーとして扱われるため競合しない
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && this.backdrop.style.display !== 'none') {
+        this.backdrop.style.display = 'none'
+        document.body.requestPointerLock()
+      }
     })
   }
 }
