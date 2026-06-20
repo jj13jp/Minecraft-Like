@@ -19,3 +19,12 @@ export const REACH_DISTANCE = 5
 
 // 頂点AO: 遮蔽レベル(0..3) → 明度倍率。index 0=遮蔽なし(最も明るい)
 export const AO_LEVELS = [1.0, 0.75, 0.55, 0.4]
+
+// 太陽の光が進む方向（正規化はRenderer側で行う）。後からこの方向をアニメートすれば昼夜サイクルになる
+export const SUN_DIRECTION: [number, number, number] = [-0.5, -1, -0.3]
+// シャドウマップ解像度
+export const SHADOW_MAP_SIZE = 2048
+// シャドウ正射影カメラの半幅。±RENDER_DISTANCE チャンクをカバー
+export const SHADOW_CAMERA_EXTENT = RENDER_DISTANCE * CHUNK_WIDTH
+// シャドウアクネ防止バイアス
+export const SHADOW_BIAS = -0.0005

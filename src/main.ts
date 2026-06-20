@@ -37,6 +37,7 @@ async function main() {
     physics.step(delta)
     player.update(delta)
     world.update(player.position.x, player.position.z)
+    renderer.updateSun(player.position.x, player.position.y, player.position.z)
 
     fpsAccum += delta
     fpsCount++
