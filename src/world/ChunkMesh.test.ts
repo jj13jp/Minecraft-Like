@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { Chunk } from './Chunk'
-import { buildChunkGeometry } from './ChunkMesh'
+import { buildChunkGeometry, computeVertexAO } from './ChunkMesh'
 import { BLOCK_STONE, BLOCK_AIR, BLOCK_GRASS } from '../constants'
 
 const ATLAS_COLS = 16
@@ -83,5 +83,25 @@ describe('buildChunkGeometry', () => {
     }
 
     expect(sideFaceChecked).toBe(true)
+  })
+})
+
+describe('computeVertexAO', () => {
+  it('両辺ソリッドは最大遮蔽3（角は無関係）', () => {
+    expect(computeVertexAO(true, true, false)).toBe(3)
+    expect(computeVertexAO(true, true, true)).toBe(3)
+  })
+  it('遮蔽なしは0', () => {
+    expect(computeVertexAO(false, false, false)).toBe(0)
+  })
+  it('片辺のみは1', () => {
+    expect(computeVertexAO(true, false, false)).toBe(1)
+    expect(computeVertexAO(false, true, false)).toBe(1)
+  })
+  it('角のみは1', () => {
+    expect(computeVertexAO(false, false, true)).toBe(1)
+  })
+  it('片辺+角は2', () => {
+    expect(computeVertexAO(true, false, true)).toBe(2)
   })
 })

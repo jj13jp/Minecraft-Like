@@ -33,6 +33,13 @@ function getTileCol(blockId: number, uvFace: UVFace): number {
   return def.tileBottom[0]
 }
 
+// 頂点AOの遮蔽レベルを返す（0=遮蔽なし/明, 3=最大遮蔽/暗）。
+// 古典的Minecraft規則: 両辺ソリッドなら角に関わらず最大遮蔽。
+export function computeVertexAO(side1: boolean, side2: boolean, corner: boolean): number {
+  if (side1 && side2) return 3
+  return (side1 ? 1 : 0) + (side2 ? 1 : 0) + (corner ? 1 : 0)
+}
+
 export function buildChunkGeometry(
   chunk: Chunk,
   getNeighborBlock: (wx: number, wy: number, wz: number) => number
