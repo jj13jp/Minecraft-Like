@@ -19,6 +19,7 @@ export class Settings {
       background: 'rgba(0,0,0,0.5)',
       display: 'none', alignItems: 'center', justifyContent: 'center',
       zIndex: '100',
+      pointerEvents: 'auto',  // #ui が pointer-events:none のためオーバーライドが必要
     })
     this.backdrop.addEventListener('click', e => e.stopPropagation())
 
