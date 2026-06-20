@@ -84,6 +84,31 @@ describe('buildChunkGeometry', () => {
 
     expect(sideFaceChecked).toBe(true)
   })
+
+  it('単一ブロックは全頂点が遮蔽なし（color=1.0）', () => {
+    const chunk = new Chunk(0, 0)
+    chunk.setBlock(8, 10, 8, BLOCK_STONE)
+    const geo = buildChunkGeometry(chunk, () => BLOCK_AIR)
+    const color = geo.getAttribute('color')
+    expect(color).toBeTruthy()
+    expect(color.count).toBe(geo.getAttribute('position').count)
+    for (let i = 0; i < color.count; i++) {
+      expect(color.getX(i)).toBeCloseTo(1.0)
+    }
+  })
+
+  it('床の上のブロックはAO遮蔽で一部 color<1.0 になる', () => {
+    const chunk = new Chunk(0, 0)
+    for (let x = 6; x <= 10; x++) chunk.setBlock(x, 10, 8, BLOCK_STONE) // 床
+    chunk.setBlock(8, 11, 8, BLOCK_STONE)                              // 床の上のブロック
+    const geo = buildChunkGeometry(chunk, () => BLOCK_AIR)
+    const color = geo.getAttribute('color')
+    let hasDark = false
+    for (let i = 0; i < color.count; i++) {
+      if (color.getX(i) < 0.999) hasDark = true
+    }
+    expect(hasDark).toBe(true)
+  })
 })
 
 describe('computeVertexAO', () => {
